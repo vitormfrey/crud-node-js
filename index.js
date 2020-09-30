@@ -1,3 +1,4 @@
+const { render } = require('ejs');
 //Importa o express
 const express = require('express')
 const path = require('path')
@@ -11,6 +12,7 @@ const app = express();
 app.set("view engine", "ejs")
 app.set("views", path.join(__dirname, "views"))
 app.use(express.static(path.join(__dirname, "public")))
+app.use(express.urlencoded({extended: false}))
  
 
 //Conexão com o banco de dados 
@@ -83,5 +85,46 @@ app.get('/data', (req, res)=>{
   res.render("data", {model: test});
 });
 
+app.get('/books', (req, res) =>{
+  const sql = "SELECT * FROM Books ORDER BY Title"
+  db.all(sql, [], (err, rows) =>{
+    if (err){
+      return console.error(err.message);
+    }
+
+    res.render("books", {model:rows})
+
+  });
+});
+
+app.get('/edit/:id', (req, res) =>{
+  //Pega o parâmetro da minnha URL no caso o ID
+  const id = req.params.id;
+  const sql = "SELECT * FROM Books WHERE Book_ID = ?"
+  db.get(sql, id, (err, row)=> {
+    if(err){
+      return console.error(err.message);
+    }
+
+    res.render("edit", {model: row});
+  })
+})
+
+//POST 
+app.post('/edit/:id', (req, res) => {
+  const id = req.params.id;
+  const book = [req.body.Title, req.body.Author, req.body.Comments, id];
+  const sql = "UPDATE Books SET Title = ?, Author = ?, Comments = ? WHERE (Book_ID = ?)";
+  db.run(sql, book, err =>{
+    if (err){
+      return console.error(err.message);
+    }
+    res.redirect("/books")
+  })
+})
+
+app.get('/create', (req, res) => {
+  res.render("create", {model:{}})
+})
 
 
