@@ -127,4 +127,43 @@ app.get('/create', (req, res) => {
   res.render("create", {model:{}})
 })
 
+//Adcicionar um livro
+app.post('/create', (req, res) =>{
+  const sql = "INSERT INTO Books (Title, Author, Comments) VALUES (?, ?, ?)"
+  const book = [req.body.Title, req.body.Author, req.body.Comments]
+  db.run(sql, book, err =>{
+    if (err){
+      return console.error(err.message)
+    }
 
+    res.redirect('/books')
+  })
+})
+
+//Deletar um livro
+app.get('/delete/:id', (req, res) =>{
+  //Pega o parâmetro da minnha URL no caso o ID
+  const id = req.params.id;
+  const sql = "SELECT * FROM Books WHERE Book_ID = ?"
+  db.get(sql, id, (err, row)=> {
+    if(err){
+      return console.error(err.message);
+    }
+
+    res.render("delete", {model: row});
+  })
+})
+
+//POST delete 
+app.post('/delete/:id', (req, res) =>{
+  const id = req.params.id
+  const sql = "DELETE FROM Books WHERE Book_ID = ?"
+  
+  db.run(sql, id, err =>{
+    if(err){
+      return console.error(err.message)
+    }
+
+    res.redirect('/books')
+  })
+})
